@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Particle Flow Background</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+    .content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 1;
+      padding: 20px;
+    }
+    .content h1 {
+      font-size: 4vw;
+      margin: 0;
+    }
+    .content p {
+      font-size: 1.5vw;
+      margin: 10px 0 0;
+    }
+    @media (max-width: 768px) {
+      .content h1 {
+        font-size: 6vw;
+      }
+      .content p {
+        font-size: 3vw;
+      }
+    }
+    @media (max-width: 480px) {
+      .content h1 {
+        font-size: 8vw;
+      }
+      .content p {
+        font-size: 4vw;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="content">
+    <h1>Welcome to My Website</h1>
+    <p>Enjoy the 3D animated background</p>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+  <script>
+    // Initialize Three.js scene
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Particle system
+    const particleCount = 5000;
+    const particles = new THREE.BufferGeometry();
+    const particlePositions = new Float32Array(particleCount * 3);
+
+    for (let i = 0; i < particleCount; i++) {
+      particlePositions[i * 3] = (Math.random() * 2 - 1) * 1000;
+      particlePositions[i * 3 + 1] = (Math.random() * 2 - 1) * 1000;
+      particlePositions[i * 3 + 2] = (Math.random() * 2 - 1) * 1000;
+    }
+
+    particles.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+
+    const particleMaterial = new THREE.PointsMaterial({
+      color: 0xffffff,
+      size: 1
+    });
+
+    const particleSystem = new THREE.Points(particles, particleMaterial);
+    scene.add(particleSystem);
+
+    // Animation
+    let mouseX = 0, mouseY = 0;
+    document.addEventListener('mousemove', (event) => {
+      mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+      mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+    });
+
+    const animateParticles = () => {
+      const positions = particles.attributes.position.array;
+      for (let i = 0; i < particleCount; i++) {
+        let dx = mouseX * 1000 - positions[i * 3];
+        let dy = mouseY * 1000 - positions[i * 3 + 1];
+        let dz = -1000 - positions[i * 3 + 2];
+        let distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        let force = Math.max(100 - distance, 0) / 100;
+        positions[i * 3] += force * dx * 0.02;
+        positions[i * 3 + 1] += force * dy * 0.02;
+        positions[i * 3 + 2] += force * dz * 0.02;
+      }
+      particles.attributes.position.needsUpdate = true;
+    };
+
+    const animate = () => {
+      requestAnimationFrame(animate);
+      animateParticles();
+      renderer.render(scene, camera);
+    };
+
+    animate();
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
